@@ -104,6 +104,7 @@ class VerticalBlock(SequenceFields, XModuleFields, StudioEditableBlock, XmlParse
             'due': self.due,
             'completed': completed,
             'past_due': past_due,
+            'has_scored_children': getattr(self, 'has_scored_children', False),
             'subsection_format': context.get('format', ''),
             'vertical_banner_ctas': vertical_banner_ctas,
         }
@@ -241,6 +242,10 @@ class VerticalBlock(SequenceFields, XModuleFields, StudioEditableBlock, XmlParse
         Compare with is_block_structure_complete_for_assignments in course_experience/utils.py, which does the same
         calculation, but for a BlockStructure node and its children.
 
+        Note: this can have the side effect of setting has_scored_children on the vertical. This is
+        used to determine if we should show a due date in the courseware. We set it here so we only
+        consider completeable children
+
         Returns:
             True if complete
             False if not
@@ -261,6 +266,7 @@ class VerticalBlock(SequenceFields, XModuleFields, StudioEditableBlock, XmlParse
             weight = getattr(child, 'weight', 1)
             scored = has_score and (weight is None or weight > 0)
             if graded and scored:
+                self.has_scored_children = True
                 if not complete:
                     return False
                 all_complete = True
